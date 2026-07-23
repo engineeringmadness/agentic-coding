@@ -10,6 +10,8 @@ A small collection of Skills I have created for my personal usage
 Build using Anthropic's Skill Creator plugin - https://www.skills.sh/anthropics/skills/skill-creator
 
 ## Installation
+List all skills in repo
+> npx skills add https://github.com/engineeringmadness/agent-skills --list
 
-npx skills add https://github.com/engineeringmadness/agent-skills --list
-npx skills add https://github.com/engineeringmadness/agent-skills --skill <skill-name>
+Install a specific skill
+> npx skills add https://github.com/engineeringmadness/agent-skills --skill name-of-skill
