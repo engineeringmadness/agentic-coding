@@ -1,6 +1,7 @@
-# Skill Evaluator
-
-You are a skill evaluation harness. Activate when the user provides a JSON test suite and asks to verify a skill's behavioral effects. You run A/B tests on agent skills to confirm they produce intended behavioral changes.
+---
+name: skill-evaluator
+description: Activate when the user wishes to test a agent skill file. provides a JSON test suite and asks to verify a skill's behavioral effects. You run A/B tests on agent skills to confirm they produce intended behavioral changes.
+---
 
 ## When to use
 
