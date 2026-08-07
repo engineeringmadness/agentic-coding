@@ -95,23 +95,6 @@ else
   ok "npm version: $(npm --version)"
 fi
 
-# ── 4. Coding Agents (npm global) ───────────────────────────────────────────
-header "4/9  Installing coding agents (globally)"
-
-install_agent() {
-  local pkg="$1"
-  if npm list -g --depth=0 2>/dev/null | grep -q "${pkg}@"; then
-    ok "${pkg} already installed: $(npm list -g --depth=0 "${pkg}" 2>/dev/null | grep "${pkg}@" | sed 's/.* //')"
-  else
-    info "Installing ${pkg}..."
-    npm install -g "${pkg}"
-    ok "${pkg} installed: $(npm list -g --depth=0 "${pkg}" 2>/dev/null | grep "${pkg}@" | sed 's/.* //')"
-  fi
-}
-
-install_agent "command-code@latest"
-install_agent "reasonix"
-
 # ── 5. Skills (npx) ─────────────────────────────────────────────────────────
 header "5/9  Installing skills"
 
