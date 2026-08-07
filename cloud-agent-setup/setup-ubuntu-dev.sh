@@ -95,21 +95,6 @@ else
   ok "npm version: $(npm --version)"
 fi
 
-# ── 5. Skills (npx) ─────────────────────────────────────────────────────────
-header "5/9  Installing skills"
-
-install_skill() {
-  local repo="$1"
-  local name="$2"
-  info "Installing skill: ${name} (from ${repo})..."
-  npx --yes skills add "${repo}" --skill "${name}"
-  ok "Skill '${name}' installed"
-}
-
-install_skill "https://github.com/obra/superpowers" "brainstorming"
-install_skill "https://github.com/juliusbrusche/caveman" "caveman"
-install_skill "https://github.com/engineeringmadness/agent-skills" "java-design"
-
 # ── 6. Java 21 (OpenJDK) ────────────────────────────────────────────────────
 header "6/9  Installing Java 21 (OpenJDK)"
 if command -v java &>/dev/null && java --version 2>&1 | grep -q '21\.'; then
