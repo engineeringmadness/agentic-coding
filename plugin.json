@@ -1,0 +1,13 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "agent-skills",
+  "version": "1.0.0",
+  "description": "A collection of Agent Skills for Java development: Dux4J state management and Java design principles.",
+  "author": {
+    "name": "Karan Gupta",
+    "email": "gkaran184@gmail.com"
+  },
+  "repository": "https://github.com/engineeringmadness/agent-skills",
+  "license": "MIT",
+  "keywords": ["java", "skills", "dux4j", "design", "state-management"]
+}
