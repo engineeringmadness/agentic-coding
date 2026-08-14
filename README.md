@@ -1,17 +1,34 @@
-# Agent Skills
+# agent-skills
 
-## How this repo came about
+An [Agent Plugin](https://agent-plugins.org/) — a portable package of [Agent Skills](https://agentskills.io/specification) that any skills-capable agent client can discover and load.
 
-A small collection of Skills I have created for my personal usage
-1. `java-design` - A skill consisting of design principles distilled from transcripts of two conference talks by legendary developer Venkat Subramaniam
-2. `dux4j` - A skill to allow any coding agent to use my state managemengt library - http://dux4j.netlify.app/ 
-3. `skill-evaluator` - A skill to allow any agent to evaluate a SKILL file using A/B testing
+## Structure
 
-Build using Anthropic's Skill Creator plugin - https://www.skills.sh/anthropics/skills/skill-creator
+```
+agent-skills/
+├── plugin.json          # Agent Plugins manifest
+└── skills/
+    ├── brainstorming/   # Idea → design workflow (from obra/superpowers)
+    ├── caveman/         # Ultra-terse response mode (from JuliusBrussee/caveman)
+    ├── dux4j/           # Dux4J state management for Java
+    └── java-design/     # Java design principles (Venkat Subramaniam)
+```
+
+## Skills
+
+1. **`dux4j`** — Build state-managed Java applications with [Dux4J](http://dux4j.netlify.app/), a Redux/Flux-style store for Java.
+2. **`java-design`** — Write well-designed Java by applying Venkat Subramaniam's object-oriented and functional design principles.
+3. **`brainstorming`** — Explore user intent, requirements, and design before any implementation. Sourced from [obra/superpowers](https://github.com/obra/superpowers) (MIT).
+4. **`caveman`** — Ultra-compressed communication mode that cuts output tokens ~65% while keeping technical accuracy. Sourced from [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) (MIT).
 
 ## Installation
-List all skills in repo
-> npx skills add https://github.com/engineeringmadness/agent-skills --list
 
-Install a specific skill
-> npx skills add https://github.com/engineeringmadness/agent-skills --skill name-of-skill
+Install the whole plugin with any Agent Plugins-compatible client, or install individual skills:
+
+```sh
+# List all skills in the plugin
+npx skills add https://github.com/engineeringmadness/agent-skills --list
+
+# Install a specific skill
+npx skills add https://github.com/engineeringmadness/agent-skills --skill name-of-skill
+```
