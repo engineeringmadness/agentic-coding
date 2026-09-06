@@ -1,17 +1,19 @@
 # agent-skills
 
-An [Agent Plugin](https://agent-plugins.org/) — a portable package of [Agent Skills](https://agentskills.io/specification) that any skills-capable agent client can discover and load.
+An [Agent Plugin](https://agent-plugins.org/) and [Cursor Plugin](https://cursor.com/docs/plugins) — a portable package of [Agent Skills](https://agentskills.io/specification) that any skills-capable agent client can discover and load.
 
 ## Structure
 
 ```
 agent-skills/
-├── plugin.json          # Agent Plugins manifest
+├── plugin.json              # Agent Plugins manifest (open standard)
+├── .cursor-plugin/
+│   └── plugin.json          # Cursor Plugin manifest
 └── skills/
-    ├── brainstorming/   # Idea → design workflow (from obra/superpowers)
-    ├── caveman/         # Ultra-terse response mode (from JuliusBrussee/caveman)
-    ├── dux4j/           # Dux4J state management for Java
-    └── java-design/     # Java design principles (Venkat Subramaniam)
+    ├── brainstorming/       # Idea → design workflow (from obra/superpowers)
+    ├── caveman/             # Ultra-terse response mode (from JuliusBrussee/caveman)
+    ├── dux4j/               # Dux4J state management for Java
+    └── java-design/         # Java design principles (Venkat Subramaniam)
 ```
 
 ## Skills
@@ -22,6 +24,21 @@ agent-skills/
 4. **`caveman`** — Ultra-compressed communication mode that cuts output tokens ~65% while keeping technical accuracy. Sourced from [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) (MIT).
 
 ## Installation
+
+### Cursor
+
+Install as a Cursor plugin by cloning or symlinking into your local plugins directory:
+
+```sh
+# Clone into Cursor's local plugins directory
+git clone https://github.com/engineeringmadness/agent-skills ~/.cursor/plugins/local/agent-skills
+```
+
+Then reload Cursor and enable the plugin under **Customize**.
+
+You can also submit this repository to the [Cursor Marketplace](https://cursor.com/marketplace/publish).
+
+### Agent Plugins (any compatible client)
 
 Install the whole plugin with any Agent Plugins-compatible client, or install individual skills:
 
