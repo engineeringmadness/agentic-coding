@@ -1,3 +1,0 @@
-Add dux4j, java-design, and skill-evaluator skills
-
-Co-authored-by: CommandCodeBot <noreply@commandcode.ai>
