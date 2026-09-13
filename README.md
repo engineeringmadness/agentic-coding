@@ -1,40 +1,42 @@
 # Software Factory
 
-My Attempt to build a software factory using Open components as much as possiible
+My Attempt to build a software factory using fundamental components as much as possiible so that the setup is harness agnostic.
+
+## Factory Lifecycle
+
+```mermaid
+graph TD;
+    A[PRD]-->B[Notion MCP]
+    C[Issue] -->D[Github CLI]
+    B --> E[Coding Agent]
+    D --> E
+    E --> F[Brainstorming]
+    F --> G[Spec File TODOs]
+    G --> H[Implementation]
+    H --> J[Unit Tests]
+    J --> I[Evidencing using agent-browser]
+    I --> K[Add PR to stack]
+    K --> G
+    K --> L[Push Stacked PRs to GitHub]
+    L --> M[Code Review]
 
 ```
-+-------------------+     +-------------------+
-|   GitHub Issues   |     |  PRD from Notion  |
-+---------+---------+     +---------+---------+
-          |                         |
-          +------------+------------+
-                       |
-                       v
-+--------------------------------------------------------------+
-|            Docker Container  (Sandboxing)                    |
-|                                                              |
-|  +--------------------------------------------------------+  |
-|  |               Codex CLI  (Coding Agent)                |  |
-|  |                                                        |  |
-|  |   [ Skills -- orchestrate the factory ]                |  |
-|  |   [ agent-browser -- test a running web app ]          |  |
-|  |   [ Node.js ]  [ Miniconda ]                           |  |
-|  +--------------------------------------------------------+  |
-|                                                              |
-|  +------------------+                                        |
-|  |   Happy daemon   |                                        |
-|  +--------+---------+                                        |
-+-----------|--------------------------------------------------+
-            |
-            v
-   +------------------+
-   |   Mobile Phone   |
-   +------------------+
-```
+
+## Tooling
+
+- Runtimes - NodeJS, JDK, Miniconda
+- PRD source - Notion via MCP
+- Issue Tracker - GitHub Issues
+- Version Control - Github via `gh` CLI + stack PR extension
+- Harness - Tested with 
+   - Codex CLI + DeepSeek
+   -  Command Code
+   -  Cursor
+
 
 ## Installation
 
-### Quick install All Skills
+### Quick Install All Agent Skills
 
 Install every skill in this repo in one line — no clone required, same as the OpenCode / Claude Code installers:
 
@@ -42,13 +44,13 @@ Install every skill in this repo in one line — no clone required, same as the 
 curl -fsSL https://raw.githubusercontent.com/engineeringmadness/agent-skills/master/scripts/install-skills-global.sh | bash
 ```
 
-**Windows** (CMD — download and run the batch script):
+**Windows** (CMD — download the batch script and run it; note that piping a script into `cmd` does NOT work, because `%~1`-style batch arguments and `if (...)` blocks only work in a real `.bat` file):
 
-```sh
-curl -fsSL https://raw.githubusercontent.com/engineeringmadness/agent-skills/master/scripts/install-skills-global.bat | cmd
+```bat
+curl -fsSL -o "%TEMP%\install-skills-global.bat" https://raw.githubusercontent.com/engineeringmadness/agent-skills/master/scripts/install-skills-global.bat && call "%TEMP%\install-skills-global.bat"
 ```
 
-### Agent Skills
+### Install Specific Agent Skills
 
 Install the whole plugin with any Agent Plugins-compatible client, or install individual skills:
 
@@ -62,7 +64,7 @@ npx skills add https://github.com/engineeringmadness/agent-skills --skill name-o
 
 ## Cloud Agent
 
-A ready-to-use coding agent image is created that could be run locally or deployed in a cloud env:
+Containerized the above setup with Codex + DeepSeek as the harness
 
 ### Build the image
 

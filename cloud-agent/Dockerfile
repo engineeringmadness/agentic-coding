@@ -30,8 +30,6 @@ RUN npm install -g agent-browser
 # Happy Coder
 RUN npm install -g happy
 
-# Notion CLI
-RUN curl -fsSL https://ntn.dev | bash
 
 
 # Miniconda (latest) into /opt/miniconda3, base env on PATH

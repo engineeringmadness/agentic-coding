@@ -11,3 +11,6 @@ name = "deepseek"
 base_url = "https://api.deepseek.com/"
 wire_api = "responses"
 env_key = "DEEPSEEK_API_KEY"
+
+[mcp_servers.notion]
+url = "https://mcp.notion.com/mcp"
