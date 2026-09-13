@@ -25,13 +25,14 @@ graph TD;
 ## Tooling
 
 - Runtimes - NodeJS, JDK, Miniconda
-- PRD source - Notion via MCP
+- PRD source - [Notion via MCP](https://developers.notion.com/guides/mcp/get-started-with-mcp)
 - Issue Tracker - GitHub Issues
-- Version Control - Github via `gh` CLI + stack PR extension
+- Version Control - Github via [gh CLI](https://cli.github.com/) + [stack PR extension](https://docs.github.com/en/pull-requests/get-started/stacked-prs-quickstart)
+- Evidencing using [agent-browser](https://agent-browser.dev/)
 - Harness - Tested with 
-   - Codex CLI + DeepSeek
-   -  Command Code
-   -  Cursor
+   - [Codex CLI](https://learn.chatgpt.com/docs/codex/cli) + DeepSeek
+   - [CommandCode](https://commandcode.ai/)
+   - [Cursor](https://cursor.com/)
 
 
 ## Installation
