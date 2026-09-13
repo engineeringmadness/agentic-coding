@@ -1,0 +1,40 @@
+{
+  "models": [
+    {
+      "slug": "deepseek-flash",
+      "display_name": "DeepSeek V4.1 Flash",
+      "name": "deepseek-flash",
+      "model": "deepseek-flash",
+      "provider": "deepseek",
+      "context_window": 131072,
+      "truncation_policy": {
+        "mode": "tokens",
+        "limit": 131072
+      },
+      "shell_type": "shell_command",
+      "visibility": "list",
+      "supported_in_api": true,
+      "priority": 0,
+      "base_instructions": "You are a helpful coding assistant.",
+      "supports_tools": true,
+      "supports_parallel_tool_calls": true,
+      "experimental_supported_tools": [],
+      "supports_reasoning_summaries": true,
+      "support_verbosity": false,
+      "supported_reasoning_levels": [
+        {
+          "effort": "low",
+          "description": "Low reasoning effort"
+        },
+        {
+          "effort": "medium",
+          "description": "Medium reasoning effort"
+        },
+        {
+          "effort": "high",
+          "description": "High reasoning effort"
+        }
+      ]
+    }
+  ]
+}
