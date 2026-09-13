@@ -9,10 +9,7 @@ My Attempt to build a software factory using Open components as much as possiibl
           |                         |
           +------------+------------+
                        |
-                       v
-+--------------------------------------------------------------+
-|            Docker Container  (Sandboxing)                    |
-|                                                              |
+                       V
 |  +--------------------------------------------------------+  |
 |  |               Codex CLI  (Coding Agent)                |  |
 |  |                                                        |  |
@@ -24,7 +21,7 @@ My Attempt to build a software factory using Open components as much as possiibl
 |  +------------------+                                        |
 |  |   Happy daemon   |                                        |
 |  +--------+---------+                                        |
-+-----------|--------------------------------------------------+
+            |
             |
             v
    +------------------+
