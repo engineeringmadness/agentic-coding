@@ -1,6 +1,8 @@
-FROM ubuntu:24.04
+FROM compscikaran/linuxlab:latest
 
 ENV DEBIAN_FRONTEND=noninteractive
+
+USER root
 
 # Base tools + GitHub CLI (latest, from the official apt repo)
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -16,41 +18,44 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get update && apt-get install -y --no-install-recommends gh \
     && rm -rf /var/lib/apt/lists/*
 
-# Node.js 24
-RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
-    && rm -rf /var/lib/apt/lists/*
-
-# Codex CLI
-RUN npm install -g @openai/codex
-
 # agent-browser
 RUN npm install -g agent-browser
+RUN agent-browser install
 
-# Happy Coder
-RUN npm install -g happy
-
-
-
-# Miniconda (latest) into /opt/miniconda3, base env on PATH
-RUN curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
-        -o /tmp/miniconda.sh \
-    && bash /tmp/miniconda.sh -b -p /opt/miniconda3 \
-    && rm /tmp/miniconda.sh \
-    && /opt/miniconda3/bin/conda clean -afy
-ENV PATH=/opt/miniconda3/bin:$PATH
+# pi coding agent
+RUN npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 
 # Non-root agent user
 RUN useradd -m -s /bin/bash agent
 USER agent
 WORKDIR /workspace
 
-# Codex CLI configured for DeepSeek V4.1 Flash (key passed at runtime via DEEPSEEK_API_KEY)
-COPY --chown=agent:agent codex-config.toml /home/agent/.codex/config.toml
-COPY --chown=agent:agent models.json /home/agent/.codex/models.json
-
 # Global skills install from this repo (into agent's home, shared universal location)
 RUN curl -fsSL https://raw.githubusercontent.com/engineeringmadness/agent-skills/master/scripts/install-skills-global.sh | bash
+
+# Default to DeepSeek Flash; authenticates with the DEEPSEEK_API_KEY from the runtime env
+RUN mkdir -p ~/.pi/agent && cat > ~/.pi/agent/settings.json <<'EOF'
+{
+  "defaultProvider": "deepseek",
+  "defaultModel": "deepseek-flash"
+}
+EOF
+
+# Pi extensions/packages (rewrites ~/.pi/agent/settings.json, keeping the defaults above)
+RUN set -eu; \
+    for pkg in \
+        npm:pi-goal-x \
+        npm:pi-subagents \
+        npm:pi-web-access \
+        npm:pi-mcp-adapter \
+        npm:pi-deepseek-cache \
+        npm:pi-plan \
+        npm:pi-dynamic-workflows \
+        npm:pi-ask-user-question \
+    ; do \
+        PI_SKIP_VERSION_CHECK=1 PI_TELEMETRY=0 pi install "$pkg"; \
+    done; \
+    pi list
 
 # Auth is passed at runtime: -e DEEPSEEK_API_KEY=... -e GH_TOKEN=...
 ENV DEEPSEEK_API_KEY=""
