@@ -1,17 +1,21 @@
-FROM compscikaran/linuxlab:latest
+FROM ubuntu:latest
 
 ENV DEBIAN_FRONTEND=noninteractive
-
 USER root
 
-# Base tools + GitHub CLI (latest, from the official apt repo)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        ca-certificates \
-        curl \
-        git \
-        bash-completion \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+# Update system and install common server administration utilities
+RUN apt-get update
+RUN apt-get install -y sudo curl wget git ripgrep
+
+
+# Node.js 24
+RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+
+# GitHub CLI (latest, from the official apt repo)
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
         -o /usr/share/keyrings/githubcli-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
         > /etc/apt/sources.list.d/github-cli.list \
@@ -31,7 +35,12 @@ USER agent
 WORKDIR /workspace
 
 # Global skills install from this repo (into agent's home, shared universal location)
-RUN curl -fsSL https://raw.githubusercontent.com/engineeringmadness/agent-skills/master/scripts/install-skills-global.sh | bash
+RUN npx skills add https://github.com/engineeringmadness/dev-setup --skill brainstorming -g -a universal --copy -y
+RUN npx skills add https://github.com/engineeringmadness/dev-setup --skill java-design -g -a universal --copy -y
+RUN npx skills add https://github.com/dietrichgebert/ponytail --skill ponytail -g -a universal --copy -y
+RUN npx skills add https://github.com/zlliang/skills --skill gh-cli -g -a universal --copy -y
+RUN npx skills add https://github.com/github/gh-stack --skill gh-stack -g -a universal --copy -y
+RUN npx skills add https://github.com/vercel-labs/agent-browser --skill agent-browser -g -a universal --copy -y
 
 # Default to DeepSeek Flash; authenticates with the DEEPSEEK_API_KEY from the runtime env
 RUN mkdir -p ~/.pi/agent && cat > ~/.pi/agent/settings.json <<'EOF'
@@ -50,12 +59,15 @@ RUN set -eu; \
         npm:pi-mcp-adapter \
         npm:pi-deepseek-cache \
         npm:pi-plan \
-        npm:pi-dynamic-workflows \
+        npm:@tintinweb/pi-tasks \
+        npm:pi-diet-ripgrep \
         npm:pi-ask-user-question \
     ; do \
         PI_SKIP_VERSION_CHECK=1 PI_TELEMETRY=0 pi install "$pkg"; \
     done; \
     pi list
+
+RUN gh extension install github/gh-stack
 
 # Auth is passed at runtime: -e DEEPSEEK_API_KEY=... -e GH_TOKEN=...
 ENV DEEPSEEK_API_KEY=""

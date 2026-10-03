@@ -16,7 +16,7 @@
 ## Build
 
 ```sh
-docker build -t compscikaran/<image_name>:latest .
+docker build -t compscikaran/coding-agent:<version> .
 ```
 
 ### Create and run a container
