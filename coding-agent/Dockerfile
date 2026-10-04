@@ -18,6 +18,7 @@ RUN set -eux; \
         ripgrep \
         sudo \
         wget \
+        ffmpeg \
         libx11-6 libxcomposite1 libxdamage1 libxext6 libxfixes3 libxrandr2 \
         libasound2 libatk1.0-0 libatk-bridge2.0-0 libatspi2.0-0 \
         libcairo2 libcups2 libdbus-1-3 libgbm1 libglib2.0-0 \
@@ -38,10 +39,6 @@ RUN npm install -g --no-audit --no-fund \
         @earendil-works/pi-coding-agent \
     && npm cache clean --force
 
-# Create non-root user
-RUN useradd -m -s /bin/bash agent
-
-USER agent
 WORKDIR /workspace
 
 # VERY IMPORTANT:
