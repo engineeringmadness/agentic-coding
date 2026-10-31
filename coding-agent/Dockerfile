@@ -66,11 +66,12 @@ RUN set -eux; \
         npm:pi-goal-x \
         npm:pi-subagents \
         npm:pi-web-access \
-        npm:pi-mcp-adapter \
+        npm:pi-cwd-guard \
+        npm:@luxass/pi-whimsical \
         npm:pi-deepseek-cache \
         npm:pi-plan \
         npm:@tintinweb/pi-tasks \
-        npm:pi-diet-ripgrep \
+        npm:pi-tps-status \
         npm:pi-ask-user-question \
     ; do \
         pi install "$pkg"; \
@@ -86,9 +87,6 @@ RUN set -eux; \
         https://github.com/engineeringmadness/dev-setup \
         --skill brainstorming -g -a universal --copy -y; \
     npx --yes skills add \
-        https://github.com/engineeringmadness/dev-setup \
-        --skill java-design -g -a universal --copy -y; \
-    npx --yes skills add \
         https://github.com/dietrichgebert/ponytail \
         --skill ponytail -g -a universal --copy -y; \
     npx --yes skills add \
@@ -100,6 +98,12 @@ RUN set -eux; \
     npx --yes skills add \
         https://github.com/vercel-labs/agent-browser \
         --skill agent-browser -g -a universal --copy -y; \
+    npx --yes skills add \
+        shadcn/ui \
+        --skill shadcn -g -a universal --copy -y; \
+        npx --yes skills add \
+        supabase/agent-skills \
+        --skill supabase -g -a universal --copy -y; \
     npm cache clean --force
 
 ENV DEEPSEEK_API_KEY="" \
