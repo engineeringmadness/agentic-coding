@@ -161,9 +161,14 @@ foreach ($s in $Skills) {
 Write-Step 'Cleaning npm cache'
 Invoke-CLI 'npm cache clean --force' { npm cache clean --force }
 
+# --- Summary --------------------------------------------------------------
+
+Write-Step 'Installed Pi extensions'
+Invoke-CLI 'pi list' { pi list }
+
+Write-Step 'Installed global skills'
+Invoke-CLI 'npx --yes skills list -g' { npx --yes skills list -g }
+
 Write-Host ''
 Write-Host 'Done. Pi, extensions, Agent Browser, gh-stack, and skills are installed.' -ForegroundColor Green
-Write-Host 'Set these before launching Pi:'
-Write-Host '    $env:DEEPSEEK_API_KEY = "<key>"'
-Write-Host '    $env:GH_TOKEN         = "<token>"'
 Write-Host 'Then start the agent with: pi'

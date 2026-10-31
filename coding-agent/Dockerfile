@@ -15,7 +15,6 @@ RUN set -eux; \
         ca-certificates \
         curl \
         git \
-        ripgrep \
         sudo \
         wget \
         ffmpeg \
