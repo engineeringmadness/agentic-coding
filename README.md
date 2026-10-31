@@ -56,7 +56,7 @@ docker exec -it coding-agent bash
 ### Windows (PowerShell 7)
 
 Native install of Pi, the extensions, Agent Browser, the gh-stack extension, and global skills.
-Assumes that NodeJS 24, Git, GitHub CLI is pre-installed on the system
+Assumes that NodeJS 24 & Git is pre-installed on the system
 ```powershell
 pwsh -NoProfile -Command "irm https://raw.githubusercontent.com/engineeringmadness/agentic-coding/master/coding-agent/setup-windows.ps1 | iex"
 ```
@@ -64,7 +64,7 @@ pwsh -NoProfile -Command "irm https://raw.githubusercontent.com/engineeringmadne
 ### Linux / macOS (Bash)
 
 Native install of Pi, the extensions, Agent Browser, the gh-stack extension, and global skills.
-Assumes that NodeJS 24, Git, GitHub CLI is pre-installed on the system
+Assumes that NodeJS 24 & Git is pre-installed on the system
 ```bash
 curl -fsSL https://raw.githubusercontent.com/engineeringmadness/agentic-coding/master/coding-agent/setup-linux.sh | bash
 ```

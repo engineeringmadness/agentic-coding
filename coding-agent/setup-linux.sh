@@ -4,9 +4,10 @@
 # Linux/macOS (Bash) port of coding-agent/Dockerfile.
 #
 # Installs the Pi coding agent and its extensions, Agent Browser (headless
-# Chrome), the gh-stack GitHub CLI extension, and the global agent skills.
+# Chrome), GitHub CLI, the gh-stack GitHub CLI extension, and the global agent
+# skills.
 #
-# Prerequisites on PATH: git, node, npm, gh.
+# Prerequisites on PATH: git, node, npm.
 # Run from a normal (non-root) shell.
 #
 # Example:
@@ -90,12 +91,6 @@ run() {
 
 print_install_hint() {
     local name="$1"
-
-    if [ "$name" = 'gh' ]; then
-        printf 'Install GitHub CLI: https://github.com/cli/cli#installation\n' >&2
-        return
-    fi
-
     local pkg="$name"
     [ "$name" = 'node' ] && pkg='nodejs'
 
@@ -132,6 +127,50 @@ add_npm_global_to_path() {
         esac
     fi
 }
+
+install_gh() {
+    if command -v gh >/dev/null 2>&1; then
+        printf '    %sgh already installed%s\n' "$YELLOW" "$RESET"
+        return
+    fi
+
+    local sudo=''
+    if [ "$(id -u)" -ne 0 ]; then
+        sudo='sudo'
+    fi
+
+    if [ "$(uname -s)" = 'Darwin' ]; then
+        run 'brew install gh' brew install gh
+        return
+    fi
+
+    if command -v apt-get >/dev/null 2>&1; then
+        local keyring='/usr/share/keyrings/githubcli-archive-keyring.gpg'
+        local tmp_key
+        tmp_key="$(mktemp)"
+        run 'download GitHub CLI apt key' curl -fsSL \
+            https://cli.github.com/packages/githubcli-archive-keyring.gpg -o "$tmp_key"
+        run 'install GitHub CLI apt key' $sudo install -m 0644 "$tmp_key" "$keyring"
+        rm -f "$tmp_key"
+        run 'add GitHub CLI apt repository' $sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null <<EOF
+deb [arch=$(dpkg --print-architecture) signed-by=$keyring] https://cli.github.com/packages stable main
+EOF
+        run 'apt-get update' $sudo apt-get update
+        run 'apt-get install gh' $sudo apt-get install -y --no-install-recommends gh
+    elif command -v dnf >/dev/null 2>&1; then
+        run 'dnf install gh' $sudo dnf install -y gh
+    elif command -v pacman >/dev/null 2>&1; then
+        run 'pacman install github-cli' $sudo pacman -S --noconfirm github-cli
+    else
+        printf 'Cannot install GitHub CLI automatically. See: https://github.com/cli/cli#installation\n' >&2
+        exit 1
+    fi
+}
+
+# --- GitHub CLI -----------------------------------------------------------
+
+step 'Installing GitHub CLI'
+install_gh
 
 # --- Prerequisites --------------------------------------------------------
 
@@ -211,5 +250,5 @@ run 'pi list' pi list
 step 'Installed global skills'
 run 'npx --yes skills list -g' npx --yes skills list -g
 
-printf '\n%sDone. Pi, extensions, Agent Browser, gh-stack, and skills are installed.%s\n' "$GREEN" "$RESET"
+printf '\n%sDone. Pi, extensions, Agent Browser, GitHub CLI, gh-stack, and skills are installed.%s\n' "$GREEN" "$RESET"
 printf 'Then start the agent with: pi\n'

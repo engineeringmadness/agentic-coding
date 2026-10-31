@@ -6,9 +6,10 @@
 
 .DESCRIPTION
     Installs the Pi coding agent and its extensions, Agent Browser (headless
-    Chrome), the gh-stack GitHub CLI extension, and the global agent skills.
+    Chrome), GitHub CLI, the gh-stack GitHub CLI extension, and the global
+    agent skills.
 
-    Prerequisites that must already be on PATH: git, node, npm, gh.
+    Prerequisites that must already be on PATH: git, node, npm, winget.
     Run from a normal (non-admin) PowerShell 7 shell.
 
 .EXAMPLE
@@ -85,6 +86,28 @@ function Add-NpmGlobalToPath {
     if ($prefix -and ($env:PATH -split ';' -notcontains $prefix)) {
         $env:PATH = "$prefix;$env:PATH"
     }
+}
+
+function Update-SessionPath {
+    $machinePath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
+    $userPath    = [Environment]::GetEnvironmentVariable('Path', 'User')
+    $env:PATH = (@($machinePath, $userPath, $env:PATH) | Where-Object { $_ }) -join ';'
+}
+
+# --- GitHub CLI -----------------------------------------------------------
+
+Write-Step 'Installing GitHub CLI'
+if (Get-Command gh -ErrorAction SilentlyContinue) {
+    Write-Host '    gh already installed' -ForegroundColor Yellow
+}
+else {
+    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+        throw "'winget' was not found on PATH. Install App Installer, then run: winget install --id GitHub.cli"
+    }
+    Invoke-CLI 'winget install --id GitHub.cli' {
+        winget install --id GitHub.cli -e --accept-package-agreements --accept-source-agreements
+    }
+    Update-SessionPath
 }
 
 # --- Prerequisites --------------------------------------------------------
@@ -170,5 +193,5 @@ Write-Step 'Installed global skills'
 Invoke-CLI 'npx --yes skills list -g' { npx --yes skills list -g }
 
 Write-Host ''
-Write-Host 'Done. Pi, extensions, Agent Browser, gh-stack, and skills are installed.' -ForegroundColor Green
+Write-Host 'Done. Pi, extensions, Agent Browser, GitHub CLI, gh-stack, and skills are installed.' -ForegroundColor Green
 Write-Host 'Then start the agent with: pi'
