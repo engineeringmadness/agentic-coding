@@ -40,15 +40,13 @@ Installed globally for all agents (`-a universal --copy`):
 
 - **GitHub CLI** - Repo operations, PRs, Issue management. Stacked PR support reduces cognitive load on human code reviewer.
 - **Agent-browser** - Test UI chanegs E2E using a headless chrome browser. Much more token efficient compared to Playwright / Selenium.
-- **ripgrep** - Faster and more efficient `grep` alternative
-
 
 ## Commands to Run
 
 ### Docker
 
 ```sh
-docker run -d --name coding-agent -e DEEPSEEK_API_KEY=<key> -e GH_TOKEN=<token> -v "C:/Users/karan/Projects:/workspace" compscikaran/coding-agent:latest -c "tail -f /dev/null"
+docker run -d --name coding-agent -e DEEPSEEK_API_KEY=<key> -e GH_TOKEN=<token> -v "<location on disk where projects are stored>:/workspace" compscikaran/coding-agent:latest -c "tail -f /dev/null"
 ```
 
 ```sh
