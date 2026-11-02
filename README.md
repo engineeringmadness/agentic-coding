@@ -47,19 +47,7 @@ Installed globally for all agents (`-a universal --copy`):
 ### Tooling
 
 - **GitHub CLI** - Repo operations, PRs, Issue management. Stacked PR support reduces cognitive load on human code reviewer.
-- **Agent-browser** - Test UI chanegs E2E using a headless chrome browser. Much more token efficient compared to Playwright / Selenium.
-
-## Commands to Run
-
-### Docker
-
-```sh
-docker run -d --name coding-agent -e DEEPSEEK_API_KEY=<key> -e GH_TOKEN=<token> -v "<location on disk where projects are stored>:/workspace" compscikaran/coding-agent:latest -c "tail -f /dev/null"
-```
-
-```sh
-docker exec -it coding-agent bash
-```
+- **Agent-browser** - Test UI changes E2E using a headless chrome browser. Much more token efficient compared to Playwright / Selenium.
 
 ### Windows (PowerShell 7)
 
@@ -69,7 +57,7 @@ Assumes that NodeJS 24 & Git is pre-installed on the system
 pwsh -NoProfile -Command "irm https://raw.githubusercontent.com/engineeringmadness/agentic-coding/master/coding-agent/setup-windows.ps1 | iex"
 ```
 
-### Linux / macOS (Bash)
+### Linux (Bash)
 
 Native install of Pi, Command Code, Herdr, the extensions, Agent Browser, the gh-stack extension, and global skills.
 Assumes that NodeJS 24 & Git is pre-installed on the system
