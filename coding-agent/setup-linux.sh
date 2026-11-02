@@ -3,9 +3,9 @@
 #
 # Linux/macOS (Bash) port of coding-agent/Dockerfile.
 #
-# Installs the Pi coding agent and its extensions, Agent Browser (headless
-# Chrome), GitHub CLI, the gh-stack GitHub CLI extension, and the global agent
-# skills.
+# Installs the Pi coding agent and its extensions, Command Code, Herdr,
+# Agent Browser (headless Chrome), GitHub CLI, the gh-stack GitHub CLI
+# extension, and the global agent skills.
 #
 # Prerequisites on PATH: git, node, npm.
 # Run from a normal (non-root) shell.
@@ -183,10 +183,16 @@ printf '    %sOK: git, node, npm, gh%s\n' "$GREEN" "$RESET"
 
 # --- Global CLI tools -----------------------------------------------------
 
-step 'Installing Pi coding agent and Agent Browser (npm global)'
-run 'npm install -g agent-browser @earendil-works/pi-coding-agent' \
-    npm install -g --no-audit --no-fund agent-browser '@earendil-works/pi-coding-agent'
+step 'Installing Pi coding agent, Command Code and Agent Browser (npm global)'
+run 'npm install -g agent-browser @earendil-works/pi-coding-agent command-code@latest' \
+    npm install -g --no-audit --no-fund agent-browser '@earendil-works/pi-coding-agent' 'command-code@latest'
 add_npm_global_to_path
+
+# --- Herdr ----------------------------------------------------------------
+
+step 'Installing Herdr'
+run 'curl -fsSL https://releases.herdr.dev/app/install.sh | sh' \
+    sh -c 'curl -fsSL https://releases.herdr.dev/app/install.sh | sh'
 
 # --- Pi configuration (must exist before pi install) ----------------------
 
@@ -250,5 +256,5 @@ run 'pi list' pi list
 step 'Installed global skills'
 run 'npx --yes skills list -g' npx --yes skills list -g
 
-printf '\n%sDone. Pi, extensions, Agent Browser, GitHub CLI, gh-stack, and skills are installed.%s\n' "$GREEN" "$RESET"
+printf '\n%sDone. Pi, Command Code, Herdr, extensions, Agent Browser, GitHub CLI, gh-stack, and skills are installed.%s\n' "$GREEN" "$RESET"
 printf 'Then start the agent with: pi\n'

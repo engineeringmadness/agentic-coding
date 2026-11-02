@@ -5,9 +5,9 @@
     Windows (PowerShell 7) port of coding-agent/Dockerfile.
 
 .DESCRIPTION
-    Installs the Pi coding agent and its extensions, Agent Browser (headless
-    Chrome), GitHub CLI, the gh-stack GitHub CLI extension, and the global
-    agent skills.
+    Installs the Pi coding agent and its extensions, Command Code, Herdr,
+    Agent Browser (headless Chrome), GitHub CLI, the gh-stack GitHub CLI
+    extension, and the global agent skills.
 
     Prerequisites that must already be on PATH: git, node, npm, winget.
     Run from a normal (non-admin) PowerShell 7 shell.
@@ -121,11 +121,18 @@ Write-Host '    OK: git, node, npm, gh' -ForegroundColor Green
 
 # --- Global CLI tools -----------------------------------------------------
 
-Write-Step 'Installing Pi coding agent and Agent Browser (npm global)'
-Invoke-CLI 'npm install -g agent-browser @earendil-works/pi-coding-agent' {
-    npm install -g --no-audit --no-fund agent-browser '@earendil-works/pi-coding-agent'
+Write-Step 'Installing Pi coding agent, Command Code and Agent Browser (npm global)'
+Invoke-CLI 'npm install -g agent-browser @earendil-works/pi-coding-agent command-code@latest' {
+    npm install -g --no-audit --no-fund agent-browser '@earendil-works/pi-coding-agent' 'command-code@latest'
 }
 Add-NpmGlobalToPath
+
+# --- Herdr ----------------------------------------------------------------
+
+Write-Step 'Installing Herdr'
+Invoke-CLI 'powershell -c "irm https://releases.herdr.dev/app/install.ps1 | iex"' {
+    powershell -c "irm https://releases.herdr.dev/app/install.ps1 | iex"
+}
 
 # --- Pi configuration (must exist before pi install) ----------------------
 
@@ -193,5 +200,5 @@ Write-Step 'Installed global skills'
 Invoke-CLI 'npx --yes skills list -g' { npx --yes skills list -g }
 
 Write-Host ''
-Write-Host 'Done. Pi, extensions, Agent Browser, GitHub CLI, gh-stack, and skills are installed.' -ForegroundColor Green
+Write-Host 'Done. Pi, Command Code, Herdr, extensions, Agent Browser, GitHub CLI, gh-stack, and skills are installed.' -ForegroundColor Green
 Write-Host 'Then start the agent with: pi'
