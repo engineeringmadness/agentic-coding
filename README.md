@@ -2,24 +2,24 @@
 
 ## An Opinionated Agentic Coding setup
 
-### ADE - Herdr
+### ADE / Agent Multiplexer - Herdr
 
 Herdr's new [Desktop app](https://herdr.dev/) is honestly beautiful and helps manage multiple parallel agents seamlessly.
 
-### Harness - Pi
-
-A minimalist harness that yields control to its user, highly extensible and fast.
-
-### Harness - CommandCode
+### Primary Harness - CommandCode
 
 A great extensible feature packed harness that comes with its own generous coding subscription plan.
+
+### Secondary Harness - Pi
+
+A minimalist harness that yields control to its user, highly extensible and fast.
 
 ### Model - DeepSeek Flash V4.1 High
 
 Once you get used to a 100-150 TPS rate in your coding agent you can never go back to Claude code (^_^!).
 Deepseek is extremely cheap especially for cached inputs and the V4.1 Flash series has a very high token throuput rate.
 
-### Extensions
+### PI Extensions
 
 1. `pi-goal-x` - Add /goal command for long running tasks with a clearly defined objective
 2. `pi-subagents` - Add subagent support for code review, scouting codebases etc.
@@ -63,10 +63,4 @@ Native install of Pi, Command Code, Herdr, the extensions, Agent Browser, the gh
 Assumes that NodeJS 24 & Git is pre-installed on the system
 ```bash
 curl -fsSL https://raw.githubusercontent.com/engineeringmadness/agentic-coding/master/coding-agent/setup-linux.sh | bash
-```
-```
-
-Linux / macOS (Bash):
-```bash
-curl -fsSL https://releases.herdr.dev/app/install.sh | sh
 ```
