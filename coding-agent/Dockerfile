@@ -36,6 +36,7 @@ RUN set -eux; \
 RUN npm install -g --no-audit --no-fund \
         agent-browser \
         @earendil-works/pi-coding-agent \
+        command-code@latest \
     && npm cache clean --force
 
 WORKDIR /workspace
