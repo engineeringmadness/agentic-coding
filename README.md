@@ -2,9 +2,17 @@
 
 ## An Opinionated Agentic Coding setup
 
+### ADE - Herdr
+
+Herdr's new [Desktop app](https://herdr.dev/) is honestly beautiful and helps manage multiple parallel agents seamlessly.
+
 ### Harness - Pi
 
-A minimalist harness that yields control to its user, highly extensible and fast
+A minimalist harness that yields control to its user, highly extensible and fast.
+
+### Harness - CommandCode
+
+A great extensible feature packed harness that comes with its own generous coding subscription plan.
 
 ### Model - DeepSeek Flash V4.1 High
 
@@ -68,18 +76,6 @@ Assumes that NodeJS 24 & Git is pre-installed on the system
 ```bash
 curl -fsSL https://raw.githubusercontent.com/engineeringmadness/agentic-coding/master/coding-agent/setup-linux.sh | bash
 ```
-
-### Command Code
-
-```sh
-npm i -g command-code@latest
-```
-
-### Herdr
-
-Windows (PowerShell):
-```powershell
-powershell -c "irm https://releases.herdr.dev/app/install.ps1 | iex"
 ```
 
 Linux / macOS (Bash):
