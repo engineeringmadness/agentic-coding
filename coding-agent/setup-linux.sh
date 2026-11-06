@@ -13,6 +13,11 @@
 # Example:
 #   bash ./coding-agent/setup-linux.sh
 #
+# Optional installs are prompted for interactively. For non-interactive
+# setups, preset any of these (y/yes or n/no):
+#   INSTALL_PI=1|0  INSTALL_PI_EXTENSIONS=1|0  USE_STACKED_PRS=1|0
+# Defaults (yes) apply when a variable is unset, including on a piped stdin.
+#
 
 set -euo pipefail
 
@@ -77,6 +82,41 @@ fi
 
 step() {
     printf '\n%s==> %s%s\n' "$CYAN" "$1" "$RESET"
+}
+
+# ask_yes_no <VAR_NAME> <PROMPT> <DEFAULT>
+# Uses $VAR_NAME when already set (y/yes/1 or n/no/0); otherwise prompts on a
+# TTY and falls back to the default when stdin is not a terminal.
+ask_yes_no() {
+    local var="$1" prompt="$2" def="${3:-y}"
+    local current="${!var:-}"
+    if [ -n "$current" ]; then
+        case "$current" in
+            y|Y|yes|YES|1|true|TRUE) printf -v "$var" 'y' ;;
+            n|N|no|NO|0|false|FALSE) printf -v "$var" 'n' ;;
+            *) printf 'Warning: ignoring invalid %s=%s (using default %s)\n' "$var" "$current" "$def" >&2; printf -v "$var" '%s' "$def" ;;
+        esac
+        return
+    fi
+    if [ ! -t 0 ]; then
+        printf -v "$var" '%s' "$def"
+        return
+    fi
+    local reply=''
+    while :; do
+        if [ "$def" = 'y' ]; then
+            printf '%s [Y/n] ' "$prompt"
+        else
+            printf '%s [y/N] ' "$prompt"
+        fi
+        IFS= read -r reply || reply=''
+        reply="$(printf '%s' "$reply" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
+        case "$reply" in
+            ''|y|yes) printf -v "$var" 'y'; return ;;
+            n|no) printf -v "$var" 'n'; return ;;
+            *) printf 'Please answer y or n.\n' ;;
+        esac
+    done
 }
 
 run() {
@@ -167,6 +207,16 @@ EOF
     fi
 }
 
+# --- Optional install choices ----------------------------------------------
+
+step 'Optional installs'
+ask_yes_no INSTALL_PI 'Install the secondary Pi harness?' y
+INSTALL_PI_EXTENSIONS=''
+if [ "$INSTALL_PI" = 'y' ]; then
+    ask_yes_no INSTALL_PI_EXTENSIONS 'Install the curated set of Pi extensions?' y
+fi
+ask_yes_no USE_STACKED_PRS 'Do you want to use stacked PRs (gh-stack extension + skill)?' y
+
 # --- GitHub CLI -----------------------------------------------------------
 
 step 'Installing GitHub CLI'
@@ -183,9 +233,14 @@ printf '    %sOK: git, node, npm, gh%s\n' "$GREEN" "$RESET"
 
 # --- Global CLI tools -----------------------------------------------------
 
-step 'Installing Pi coding agent, Command Code and Agent Browser (npm global)'
-run 'npm install -g agent-browser @earendil-works/pi-coding-agent command-code@latest' \
-    npm install -g --no-audit --no-fund agent-browser '@earendil-works/pi-coding-agent' 'command-code@latest'
+step 'Installing Command Code and Agent Browser (npm global)'
+if [ "$INSTALL_PI" = 'y' ]; then
+    run 'npm install -g agent-browser @earendil-works/pi-coding-agent command-code@latest' \
+        npm install -g --no-audit --no-fund agent-browser '@earendil-works/pi-coding-agent' 'command-code@latest'
+else
+    run 'npm install -g agent-browser command-code@latest' \
+        npm install -g --no-audit --no-fund agent-browser 'command-code@latest'
+fi
 add_npm_global_to_path
 
 # --- Herdr ----------------------------------------------------------------
@@ -196,19 +251,21 @@ run 'curl -fsSL https://releases.herdr.dev/app/install.sh | sh' \
 
 # --- Pi configuration (must exist before pi install) ----------------------
 
-step "Configuring Pi ($PI_SETTINGS)"
-mkdir -p "$PI_AGENT_DIR"
-if [ ! -f "$PI_SETTINGS" ]; then
-    cat > "$PI_SETTINGS" <<'EOF'
+if [ "$INSTALL_PI" = 'y' ]; then
+    step "Configuring Pi ($PI_SETTINGS)"
+    mkdir -p "$PI_AGENT_DIR"
+    if [ ! -f "$PI_SETTINGS" ]; then
+        cat > "$PI_SETTINGS" <<'EOF'
 {
   "defaultProvider": "deepseek",
   "defaultModel": "deepseek-flash",
   "packages": []
 }
 EOF
-    printf '    %sCreated %s%s\n' "$GREEN" "$PI_SETTINGS" "$RESET"
-else
-    printf '    %sKeeping existing %s%s\n' "$YELLOW" "$PI_SETTINGS" "$RESET"
+        printf '    %sCreated %s%s\n' "$GREEN" "$PI_SETTINGS" "$RESET"
+    else
+        printf '    %sKeeping existing %s%s\n' "$YELLOW" "$PI_SETTINGS" "$RESET"
+    fi
 fi
 
 # --- Agent Browser (headless Chrome) --------------------------------------
@@ -218,27 +275,39 @@ run 'agent-browser install' agent-browser install
 
 # --- Pi extensions --------------------------------------------------------
 
-step 'Installing Pi extensions'
-for pkg in "${PI_EXTENSIONS[@]}"; do
-    run "pi install $pkg" pi install "$pkg"
-done
-run 'pi list' pi list
+if [ "$INSTALL_PI" = 'y' ] && [ "$INSTALL_PI_EXTENSIONS" = 'y' ]; then
+    step 'Installing Pi extensions'
+    for pkg in "${PI_EXTENSIONS[@]}"; do
+        run "pi install $pkg" pi install "$pkg"
+    done
+    run 'pi list' pi list
+elif [ "$INSTALL_PI" = 'y' ]; then
+    printf '\n    %sSkipping Pi extensions%s\n' "$YELLOW" "$RESET"
+fi
 
 # --- GitHub CLI extension -------------------------------------------------
 
-step 'Installing gh-stack GitHub CLI extension'
-if gh extension list 2>/dev/null | grep -q 'gh-stack'; then
-    printf '    %sgh-stack already installed%s\n' "$YELLOW" "$RESET"
+if [ "$USE_STACKED_PRS" = 'y' ]; then
+    step 'Installing gh-stack GitHub CLI extension'
+    if gh extension list 2>/dev/null | grep -q 'gh-stack'; then
+        printf '    %sgh-stack already installed%s\n' "$YELLOW" "$RESET"
+    else
+        run 'gh extension install github/gh-stack' gh extension install github/gh-stack
+    fi
 else
-    run 'gh extension install github/gh-stack' gh extension install github/gh-stack
+    printf '\n    %sSkipping gh-stack GitHub CLI extension%s\n' "$YELLOW" "$RESET"
 fi
 
 # --- Global skills --------------------------------------------------------
 
 step 'Installing global agent skills'
 for i in "${!SKILL_NAMES[@]}"; do
-    source="${SKILL_SOURCES[$i]}"
     skill="${SKILL_NAMES[$i]}"
+    if [ "$skill" = 'gh-stack' ] && [ "$USE_STACKED_PRS" != 'y' ]; then
+        printf '    %sSkipping %s skill%s\n' "$YELLOW" "$skill" "$RESET"
+        continue
+    fi
+    source="${SKILL_SOURCES[$i]}"
     run "skills add $skill ($source)" \
         npx --yes skills add "$source" --skill "$skill" -g -a universal --copy -y
 done
@@ -250,11 +319,17 @@ run 'npm cache clean --force' npm cache clean --force
 
 # --- Summary --------------------------------------------------------------
 
-step 'Installed Pi extensions'
-run 'pi list' pi list
+if [ "$INSTALL_PI" = 'y' ]; then
+    step 'Installed Pi extensions'
+    run 'pi list' pi list
+fi
 
 step 'Installed global skills'
 run 'npx --yes skills list -g' npx --yes skills list -g
 
-printf '\n%sDone. Pi, Command Code, Herdr, extensions, Agent Browser, GitHub CLI, gh-stack, and skills are installed.%s\n' "$GREEN" "$RESET"
-printf 'Then start the agent with: pi\n'
+printf '\n%sDone. Command Code, Herdr, Agent Browser, GitHub CLI, and skills are installed.%s\n' "$GREEN" "$RESET"
+if [ "$INSTALL_PI" = 'y' ]; then
+    printf 'Then start the agent with: pi\n'
+else
+    printf 'Pi was skipped. Set INSTALL_PI=1 to install it later.\n'
+fi
