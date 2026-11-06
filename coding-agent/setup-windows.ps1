@@ -14,6 +14,12 @@
 
 .EXAMPLE
     pwsh -NoProfile -File .\coding-agent\setup-windows.ps1
+
+.NOTES
+    Optional installs are prompted for interactively. For non-interactive
+    setups, preset any of these (y/yes or n/no):
+      $env:INSTALL_PI, $env:INSTALL_PI_EXTENSIONS, $env:USE_STACKED_PRS
+    Defaults (yes) apply when a variable is unset, including on a piped stdin.
 #>
 
 Set-StrictMode -Version Latest
@@ -62,6 +68,52 @@ function Write-Step {
     Write-Host "==> $Message" -ForegroundColor Cyan
 }
 
+# Ask-YesNo <VariableName> <Prompt> <Default>
+# Uses the named environment variable when already set (y/yes/1 or n/no/0);
+# otherwise prompts on an interactive host and falls back to the default
+# when input is redirected.
+function Ask-YesNo {
+    param(
+        [Parameter(Mandatory)][string]$VariableName,
+        [Parameter(Mandatory)][string]$Prompt,
+        [string]$Default = 'y'
+    )
+    $current = Get-Item "Env:$VariableName" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Value
+    if ($current) {
+        $normalized = $current.Trim().ToLowerInvariant()
+        $answer = switch ($normalized) {
+            'y' { 'y' } 'yes' { 'y' } '1' { 'y' } 'true' { 'y' }
+            'n' { 'n' } 'no' { 'n' } '0' { 'n' } 'false' { 'n' }
+            default { $null }
+        }
+        if ($answer) {
+            Set-Item "Env:$VariableName" $answer
+            return $answer
+        }
+        Write-Warning "Ignoring invalid $VariableName=$current (using default $Default)"
+        $current = $null
+    }
+    $defaultLabel = if ($Default -eq 'y') { '[Y/n]' } else { '[y/N]' }
+    while ($true) {
+        $reply = $null
+        if ($host.UI.RawUI -and -not [Console]::IsInputRedirected) {
+            $reply = Read-Host "$Prompt $defaultLabel"
+        }
+        $reply = ($reply ?? '').Trim().ToLowerInvariant()
+        switch ($reply) {
+            '' { $answer = $Default }
+            'y' { $answer = 'y' } 'yes' { $answer = 'y' }
+            'n' { $answer = 'n' } 'no' { $answer = 'n' }
+            default {
+                Write-Host 'Please answer y or n.'
+                continue
+            }
+        }
+        Set-Item "Env:$VariableName" $answer
+        return $answer
+    }
+}
+
 function Invoke-CLI {
     param(
         [Parameter(Mandatory)][string]$Description,
@@ -94,6 +146,20 @@ function Update-SessionPath {
     $env:PATH = (@($machinePath, $userPath, $env:PATH) | Where-Object { $_ }) -join ';'
 }
 
+# --- Optional install choices ----------------------------------------------
+
+Write-Step 'Optional installs'
+$InstallPi = Ask-YesNo -VariableName 'INSTALL_PI' -Prompt 'Install the secondary Pi harness?' -Default 'y'
+$InstallPiExtensions = $null
+$UseStackedPrs = $null
+if ($InstallPi -eq 'y') {
+    $InstallPiExtensions = Ask-YesNo -VariableName 'INSTALL_PI_EXTENSIONS' -Prompt 'Install the curated set of Pi extensions?' -Default 'y'
+}
+else {
+    Write-Host '    Skipping Pi and its extensions' -ForegroundColor Yellow
+}
+$UseStackedPrs = Ask-YesNo -VariableName 'USE_STACKED_PRS' -Prompt 'Do you want to use stacked PRs (gh-stack extension + skill)?' -Default 'y'
+
 # --- GitHub CLI -----------------------------------------------------------
 
 Write-Step 'Installing GitHub CLI'
@@ -121,9 +187,16 @@ Write-Host '    OK: git, node, npm, gh' -ForegroundColor Green
 
 # --- Global CLI tools -----------------------------------------------------
 
-Write-Step 'Installing Pi coding agent, Command Code and Agent Browser (npm global)'
-Invoke-CLI 'npm install -g agent-browser @earendil-works/pi-coding-agent command-code@latest' {
-    npm install -g --no-audit --no-fund agent-browser '@earendil-works/pi-coding-agent' 'command-code@latest'
+Write-Step 'Installing Command Code and Agent Browser (npm global)'
+if ($InstallPi -eq 'y') {
+    Invoke-CLI 'npm install -g agent-browser @earendil-works/pi-coding-agent command-code@latest' {
+        npm install -g --no-audit --no-fund agent-browser '@earendil-works/pi-coding-agent' 'command-code@latest'
+    }
+}
+else {
+    Invoke-CLI 'npm install -g agent-browser command-code@latest' {
+        npm install -g --no-audit --no-fund agent-browser 'command-code@latest'
+    }
 }
 Add-NpmGlobalToPath
 
@@ -136,19 +209,21 @@ Invoke-CLI 'powershell -c "irm https://releases.herdr.dev/app/install.ps1 | iex"
 
 # --- Pi configuration (must exist before pi install) ----------------------
 
-Write-Step "Configuring Pi ($PiSettings)"
-New-Item -ItemType Directory -Force -Path $PiAgentDir | Out-Null
-if (-not (Test-Path $PiSettings)) {
-    $settings = [ordered]@{
-        defaultProvider = 'deepseek'
-        defaultModel    = 'deepseek-flash'
-        packages        = @()
-    } | ConvertTo-Json -Depth 5
-    Set-Content -Path $PiSettings -Value $settings -Encoding utf8
-    Write-Host "    Created $PiSettings" -ForegroundColor Green
-}
-else {
-    Write-Host "    Keeping existing $PiSettings" -ForegroundColor Yellow
+if ($InstallPi -eq 'y') {
+    Write-Step "Configuring Pi ($PiSettings)"
+    New-Item -ItemType Directory -Force -Path $PiAgentDir | Out-Null
+    if (-not (Test-Path $PiSettings)) {
+        $settings = [ordered]@{
+            defaultProvider = 'deepseek'
+            defaultModel    = 'deepseek-flash'
+            packages        = @()
+        } | ConvertTo-Json -Depth 5
+        Set-Content -Path $PiSettings -Value $settings -Encoding utf8
+        Write-Host "    Created $PiSettings" -ForegroundColor Green
+    }
+    else {
+        Write-Host "    Keeping existing $PiSettings" -ForegroundColor Yellow
+    }
 }
 
 # --- Agent Browser (headless Chrome) --------------------------------------
@@ -158,21 +233,33 @@ Invoke-CLI 'agent-browser install' { agent-browser install }
 
 # --- Pi extensions --------------------------------------------------------
 
-Write-Step 'Installing Pi extensions'
-foreach ($pkg in $PiExtensions) {
-    Invoke-CLI "pi install $pkg" { pi install $pkg }
+if ($InstallPi -eq 'y' -and $InstallPiExtensions -eq 'y') {
+    Write-Step 'Installing Pi extensions'
+    foreach ($pkg in $PiExtensions) {
+        Invoke-CLI "pi install $pkg" { pi install $pkg }
+    }
+    Invoke-CLI 'pi list' { pi list }
 }
-Invoke-CLI 'pi list' { pi list }
+elseif ($InstallPi -eq 'y') {
+    Write-Host ''
+    Write-Host '    Skipping Pi extensions' -ForegroundColor Yellow
+}
 
 # --- GitHub CLI extension -------------------------------------------------
 
-Write-Step 'Installing gh-stack GitHub CLI extension'
-$ghExtensions = (& gh extension list 2>$null) -join "`n"
-if ($ghExtensions -match 'gh-stack') {
-    Write-Host '    gh-stack already installed' -ForegroundColor Yellow
+if ($UseStackedPrs -eq 'y') {
+    Write-Step 'Installing gh-stack GitHub CLI extension'
+    $ghExtensions = (& gh extension list 2>$null) -join "`n"
+    if ($ghExtensions -match 'gh-stack') {
+        Write-Host '    gh-stack already installed' -ForegroundColor Yellow
+    }
+    else {
+        Invoke-CLI 'gh extension install github/gh-stack' { gh extension install github/gh-stack }
+    }
 }
 else {
-    Invoke-CLI 'gh extension install github/gh-stack' { gh extension install github/gh-stack }
+    Write-Host ''
+    Write-Host '    Skipping gh-stack GitHub CLI extension' -ForegroundColor Yellow
 }
 
 # --- Global skills --------------------------------------------------------
@@ -181,6 +268,10 @@ Write-Step 'Installing global agent skills'
 foreach ($s in $Skills) {
     $source = $s.Source
     $skill  = $s.Skill
+    if ($skill -eq 'gh-stack' -and $UseStackedPrs -ne 'y') {
+        Write-Host "    Skipping $skill skill" -ForegroundColor Yellow
+        continue
+    }
     Invoke-CLI "skills add $skill ($source)" {
         npx --yes skills add $source --skill $skill -g -a universal --copy -y
     }
@@ -193,12 +284,19 @@ Invoke-CLI 'npm cache clean --force' { npm cache clean --force }
 
 # --- Summary --------------------------------------------------------------
 
-Write-Step 'Installed Pi extensions'
-Invoke-CLI 'pi list' { pi list }
+if ($InstallPi -eq 'y') {
+    Write-Step 'Installed Pi extensions'
+    Invoke-CLI 'pi list' { pi list }
+}
 
 Write-Step 'Installed global skills'
 Invoke-CLI 'npx --yes skills list -g' { npx --yes skills list -g }
 
 Write-Host ''
-Write-Host 'Done. Pi, Command Code, Herdr, extensions, Agent Browser, GitHub CLI, gh-stack, and skills are installed.' -ForegroundColor Green
-Write-Host 'Then start the agent with: pi'
+Write-Host 'Done. Command Code, Herdr, Agent Browser, GitHub CLI, and skills are installed.' -ForegroundColor Green
+if ($InstallPi -eq 'y') {
+    Write-Host 'Then start the agent with: pi'
+}
+else {
+    Write-Host 'Pi was skipped. Set $env:INSTALL_PI=1 to install it later.'
+}
