@@ -2,7 +2,7 @@
 
 ## An Opinionated Agentic Coding setup
 
-### ADE / Agent Multiplexer - Herdr
+### ADE / Agent Multiplexer - Herdr Desktop
 
 Herdr's new [Desktop app](https://herdr.dev/) is honestly beautiful and helps manage multiple parallel agents seamlessly.
 
@@ -14,23 +14,15 @@ A great extensible feature packed harness that comes with its own generous codin
 
 A minimalist harness that yields control to its user, highly extensible and fast.
 
-### Model - DeepSeek Flash V4.1 High
+### Primary Model - DeepSeek Flash V4.1 High
 
 Once you get used to a 100-150 TPS rate in your coding agent you can never go back to Claude code (^_^!).
 Deepseek is extremely cheap especially for cached inputs and the V4.1 Flash series has a very high token throuput rate.
 
-### PI Extensions
+### Secondary Model - Changing (At the moment its Minimax M3.1 Flash High)
 
-1. `pi-goal-x` - Add /goal command for long running tasks with a clearly defined objective
-2. `pi-subagents` - Add subagent support for code review, scouting codebases etc.
-3. `pi-web-access` - Add web search tool for agent
-4. `pi-cwd-guard` - Safety guard for cwd access, protected paths, and common destructive commands
-5. `@luxass/pi-whimsical` - Replace Pi's working message with rotating coding jokes, memes, and Star Wars references
-6. `pi-deepseek-cache` - Ensure Deepseek caching is maximized by fixing cache prefixes
-7. `pi-plan` - Add plan mode support
-8. `@tintinweb/pi-tasks` - Add a TODO list tracker for multistep tasks
-9. `pi-tps-status` - Tokens-per-second status widget with TTFT, token counts, and provider-usage reconciliation
-10. `pi-ask-user-question` - Add interface for agent to ask clarifying questions in form of MCQs
+A model that "Thinks" a bit more, focuses on type signatures a lot more compared to DeepSeek. 
+I use it primarily for refactoring work, code cleanup and alternative approach analysis.
 
 ### Skills
 
