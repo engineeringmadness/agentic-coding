@@ -6,8 +6,8 @@
 
 .DESCRIPTION
     Installs the Pi coding agent and its extensions, Command Code, Herdr,
-    Agent Browser (headless Chrome), GitHub CLI, the gh-stack GitHub CLI
-    extension, and the global agent skills.
+    the Command Code Herdr status mod, Agent Browser (headless Chrome),
+    GitHub CLI, the gh-stack GitHub CLI extension, and the global agent skills.
 
     Prerequisites that must already be on PATH: git, node, npm, winget.
     Run from a normal (non-admin) PowerShell 7 shell.
@@ -36,6 +36,9 @@ $env:PI_TELEMETRY              = '0'
 
 $PiAgentDir = Join-Path $HOME '.pi\agent'
 $PiSettings = Join-Path $PiAgentDir 'settings.json'
+
+$HerdrModRepo = 'https://github.com/engineeringmadness/commandcode-herdr-desktop-mod'
+$HerdrModDir  = Join-Path $HOME '.commandcode-herdr-desktop-mod'
 
 $PiExtensions = @(
     'npm:pi-goal-x'
@@ -207,6 +210,22 @@ Invoke-CLI 'powershell -c "irm https://releases.herdr.dev/app/install.ps1 | iex"
     powershell -c "irm https://releases.herdr.dev/app/install.ps1 | iex"
 }
 
+# --- Herdr Command Code mod ------------------------------------------------
+
+Write-Step 'Installing Herdr Command Code mod'
+if (Test-Path (Join-Path $HerdrModDir '.git')) {
+    Write-Host "    $HerdrModDir already cloned, pulling latest" -ForegroundColor Yellow
+    Invoke-CLI "git -C $HerdrModDir pull --ff-only" { git -C $HerdrModDir pull --ff-only }
+}
+elseif (Test-Path $HerdrModDir) {
+    throw "$HerdrModDir exists and is not a git clone. Move it aside and re-run."
+}
+else {
+    Invoke-CLI "git clone $HerdrModRepo $HerdrModDir" { git clone $HerdrModRepo $HerdrModDir }
+}
+Invoke-CLI "command-code mods add -g $HerdrModDir" { command-code mods add -g $HerdrModDir }
+Invoke-CLI 'command-code mods list' { command-code mods list }
+
 # --- Pi configuration (must exist before pi install) ----------------------
 
 if ($InstallPi -eq 'y') {
@@ -293,7 +312,7 @@ Write-Step 'Installed global skills'
 Invoke-CLI 'npx --yes skills list -g' { npx --yes skills list -g }
 
 Write-Host ''
-Write-Host 'Done. Command Code, Herdr, Agent Browser, GitHub CLI, and skills are installed.' -ForegroundColor Green
+Write-Host 'Done. Command Code, Herdr, Herdr status mod, Agent Browser, GitHub CLI, and skills are installed.' -ForegroundColor Green
 if ($InstallPi -eq 'y') {
     Write-Host 'Then start the agent with: pi'
 }
