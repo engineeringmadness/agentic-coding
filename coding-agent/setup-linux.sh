@@ -4,8 +4,8 @@
 # Linux/macOS (Bash) port of coding-agent/Dockerfile.
 #
 # Installs the Pi coding agent and its extensions, Command Code, Herdr,
-# Agent Browser (headless Chrome), GitHub CLI, the gh-stack GitHub CLI
-# extension, and the global agent skills.
+# the Command Code Herdr status mod, Agent Browser (headless Chrome),
+# GitHub CLI, the gh-stack GitHub CLI extension, and the global agent skills.
 #
 # Prerequisites on PATH: git, node, npm.
 # Run from a normal (non-root) shell.
@@ -30,6 +30,9 @@ export PI_TELEMETRY=0
 
 PI_AGENT_DIR="$HOME/.pi/agent"
 PI_SETTINGS="$PI_AGENT_DIR/settings.json"
+
+HERDR_MOD_REPO='https://github.com/engineeringmadness/commandcode-herdr-desktop-mod'
+HERDR_MOD_DIR="$HOME/.commandcode-herdr-desktop-mod"
 
 PI_EXTENSIONS=(
     'npm:pi-goal-x'
@@ -249,6 +252,21 @@ step 'Installing Herdr'
 run 'curl -fsSL https://releases.herdr.dev/app/install.sh | sh' \
     sh -c 'curl -fsSL https://releases.herdr.dev/app/install.sh | sh'
 
+# --- Herdr Command Code mod ------------------------------------------------
+
+step 'Installing Herdr Command Code mod'
+if [ -d "$HERDR_MOD_DIR/.git" ]; then
+    printf '    %s%s already cloned, pulling latest%s\n' "$YELLOW" "$HERDR_MOD_DIR" "$RESET"
+    run "git -C $HERDR_MOD_DIR pull --ff-only" git -C "$HERDR_MOD_DIR" pull --ff-only
+elif [ -e "$HERDR_MOD_DIR" ]; then
+    printf 'Error: %s exists and is not a git clone. Move it aside and re-run.\n' "$HERDR_MOD_DIR" >&2
+    exit 1
+else
+    run "git clone $HERDR_MOD_REPO $HERDR_MOD_DIR" git clone "$HERDR_MOD_REPO" "$HERDR_MOD_DIR"
+fi
+run "command-code mods add -g $HERDR_MOD_DIR" command-code mods add -g "$HERDR_MOD_DIR"
+run 'command-code mods list' command-code mods list
+
 # --- Pi configuration (must exist before pi install) ----------------------
 
 if [ "$INSTALL_PI" = 'y' ]; then
@@ -327,7 +345,7 @@ fi
 step 'Installed global skills'
 run 'npx --yes skills list -g' npx --yes skills list -g
 
-printf '\n%sDone. Command Code, Herdr, Agent Browser, GitHub CLI, and skills are installed.%s\n' "$GREEN" "$RESET"
+printf '\n%sDone. Command Code, Herdr, Herdr status mod, Agent Browser, GitHub CLI, and skills are installed.%s\n' "$GREEN" "$RESET"
 if [ "$INSTALL_PI" = 'y' ]; then
     printf 'Then start the agent with: pi\n'
 else
