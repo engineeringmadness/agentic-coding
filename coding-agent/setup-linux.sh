@@ -3,9 +3,13 @@
 #
 # Linux/macOS (Bash) port of coding-agent/Dockerfile.
 #
-# Installs the Pi coding agent and its extensions, Command Code, Herdr,
-# the Command Code Herdr status mod, Agent Browser (headless Chrome),
-# GitHub CLI, the gh-stack GitHub CLI extension, and the global agent skills.
+# Installs, as individually chosen components: Herdr Desktop, GitHub CLI
+# (plus the gh-stack extension), Agent Browser (headless Chrome),
+# Command Code, Pi, the curated Pi extensions, and the global agent
+# skills (installed as a single bundle).
+#
+# Each component is prompted for in turn; confirming installs it
+# immediately before moving on to the next component.
 #
 # Prerequisites on PATH: git, node, npm.
 # Run from a normal (non-root) shell.
@@ -15,7 +19,9 @@
 #
 # Optional installs are prompted for interactively. For non-interactive
 # setups, preset any of these (y/yes or n/no):
-#   INSTALL_PI=1|0  INSTALL_PI_EXTENSIONS=1|0  USE_STACKED_PRS=1|0
+#   INSTALL_HERDR=1|0  INSTALL_GH=1|0  INSTALL_AGENT_BROWSER=1|0
+#   INSTALL_COMMAND_CODE=1|0  INSTALL_PI=1|0
+#   INSTALL_PI_EXTENSIONS=1|0  INSTALL_SKILLS=1|0
 # Defaults (yes) apply when a variable is unset, including on a piped stdin.
 #
 
@@ -210,67 +216,29 @@ EOF
     fi
 }
 
-# --- Optional install choices ----------------------------------------------
+install_gh_stack() {
+    if gh extension list 2>/dev/null | grep -q 'gh-stack'; then
+        printf '    %sgh-stack already installed%s\n' "$YELLOW" "$RESET"
+    else
+        run 'gh extension install github/gh-stack' gh extension install github/gh-stack
+    fi
+}
 
-step 'Optional installs'
-ask_yes_no INSTALL_PI 'Install the secondary Pi harness?' y
-INSTALL_PI_EXTENSIONS=''
-if [ "$INSTALL_PI" = 'y' ]; then
-    ask_yes_no INSTALL_PI_EXTENSIONS 'Install the curated set of Pi extensions?' y
-fi
-ask_yes_no USE_STACKED_PRS 'Do you want to use stacked PRs (gh-stack extension + skill)?' y
+install_herdr_mod() {
+    if [ -d "$HERDR_MOD_DIR/.git" ]; then
+        printf '    %s%s already cloned, pulling latest%s\n' "$YELLOW" "$HERDR_MOD_DIR" "$RESET"
+        run "git -C $HERDR_MOD_DIR pull --ff-only" git -C "$HERDR_MOD_DIR" pull --ff-only
+    elif [ -e "$HERDR_MOD_DIR" ]; then
+        printf 'Error: %s exists and is not a git clone. Move it aside and re-run.\n' "$HERDR_MOD_DIR" >&2
+        exit 1
+    else
+        run "git clone $HERDR_MOD_REPO $HERDR_MOD_DIR" git clone "$HERDR_MOD_REPO" "$HERDR_MOD_DIR"
+    fi
+    run "command-code mods add -g $HERDR_MOD_DIR" command-code mods add -g "$HERDR_MOD_DIR"
+    run 'command-code mods list' command-code mods list
+}
 
-# --- GitHub CLI -----------------------------------------------------------
-
-step 'Installing GitHub CLI'
-install_gh
-
-# --- Prerequisites --------------------------------------------------------
-
-step 'Checking prerequisites'
-assert_command git
-assert_command node
-assert_command npm
-assert_command gh
-printf '    %sOK: git, node, npm, gh%s\n' "$GREEN" "$RESET"
-
-# --- Global CLI tools -----------------------------------------------------
-
-step 'Installing Command Code and Agent Browser (npm global)'
-if [ "$INSTALL_PI" = 'y' ]; then
-    run 'npm install -g agent-browser @earendil-works/pi-coding-agent command-code@latest' \
-        npm install -g --no-audit --no-fund agent-browser '@earendil-works/pi-coding-agent' 'command-code@latest'
-else
-    run 'npm install -g agent-browser command-code@latest' \
-        npm install -g --no-audit --no-fund agent-browser 'command-code@latest'
-fi
-add_npm_global_to_path
-
-# --- Herdr ----------------------------------------------------------------
-
-step 'Installing Herdr'
-run 'curl -fsSL https://releases.herdr.dev/app/install.sh | sh' \
-    sh -c 'curl -fsSL https://releases.herdr.dev/app/install.sh | sh'
-
-# --- Herdr Command Code mod ------------------------------------------------
-
-step 'Installing Herdr Command Code mod'
-if [ -d "$HERDR_MOD_DIR/.git" ]; then
-    printf '    %s%s already cloned, pulling latest%s\n' "$YELLOW" "$HERDR_MOD_DIR" "$RESET"
-    run "git -C $HERDR_MOD_DIR pull --ff-only" git -C "$HERDR_MOD_DIR" pull --ff-only
-elif [ -e "$HERDR_MOD_DIR" ]; then
-    printf 'Error: %s exists and is not a git clone. Move it aside and re-run.\n' "$HERDR_MOD_DIR" >&2
-    exit 1
-else
-    run "git clone $HERDR_MOD_REPO $HERDR_MOD_DIR" git clone "$HERDR_MOD_REPO" "$HERDR_MOD_DIR"
-fi
-run "command-code mods add -g $HERDR_MOD_DIR" command-code mods add -g "$HERDR_MOD_DIR"
-run 'command-code mods list' command-code mods list
-
-# --- Pi configuration (must exist before pi install) ----------------------
-
-if [ "$INSTALL_PI" = 'y' ]; then
-    step "Configuring Pi ($PI_SETTINGS)"
+configure_pi() {
     mkdir -p "$PI_AGENT_DIR"
     if [ ! -f "$PI_SETTINGS" ]; then
         cat > "$PI_SETTINGS" <<'EOF'
@@ -284,51 +252,125 @@ EOF
     else
         printf '    %sKeeping existing %s%s\n' "$YELLOW" "$PI_SETTINGS" "$RESET"
     fi
+}
+
+skipped() {
+    printf '\n    %sSkipping %s%s\n' "$YELLOW" "$1" "$RESET"
+}
+
+# --- Prerequisites --------------------------------------------------------
+
+step 'Checking prerequisites'
+assert_command git
+assert_command node
+assert_command npm
+printf '    %sOK: git, node, npm%s\n' "$GREEN" "$RESET"
+
+INSTALL_HERDR=''
+INSTALL_GH=''
+INSTALL_AGENT_BROWSER=''
+INSTALL_COMMAND_CODE=''
+INSTALL_PI=''
+INSTALL_PI_EXTENSIONS=''
+INSTALL_SKILLS=''
+
+# --- 1. Herdr Desktop -----------------------------------------------------
+
+step 'Herdr Desktop'
+ask_yes_no INSTALL_HERDR 'Install Herdr Desktop?' y
+if [ "$INSTALL_HERDR" = 'y' ]; then
+    run 'curl -fsSL https://releases.herdr.dev/app/install.sh | sh' \
+        sh -c 'curl -fsSL https://releases.herdr.dev/app/install.sh | sh'
+else
+    skipped 'Herdr Desktop'
 fi
 
-# --- Agent Browser (headless Chrome) --------------------------------------
+# --- 2. GitHub CLI --------------------------------------------------------
 
-step 'Installing Chrome for Agent Browser'
-run 'agent-browser install' agent-browser install
-
-# --- Pi extensions --------------------------------------------------------
-
-if [ "$INSTALL_PI" = 'y' ] && [ "$INSTALL_PI_EXTENSIONS" = 'y' ]; then
-    step 'Installing Pi extensions'
-    for pkg in "${PI_EXTENSIONS[@]}"; do
-        run "pi install $pkg" pi install "$pkg"
-    done
-    run 'pi list' pi list
-elif [ "$INSTALL_PI" = 'y' ]; then
-    printf '\n    %sSkipping Pi extensions%s\n' "$YELLOW" "$RESET"
+step 'GitHub CLI'
+ask_yes_no INSTALL_GH 'Install GitHub CLI (including the gh-stack extension)?' y
+if [ "$INSTALL_GH" = 'y' ]; then
+    install_gh
+    assert_command gh
+    install_gh_stack
+else
+    skipped 'GitHub CLI'
 fi
 
-# --- GitHub CLI extension -------------------------------------------------
+# --- 3. Agent Browser -----------------------------------------------------
 
-if [ "$USE_STACKED_PRS" = 'y' ]; then
-    step 'Installing gh-stack GitHub CLI extension'
-    if gh extension list 2>/dev/null | grep -q 'gh-stack'; then
-        printf '    %sgh-stack already installed%s\n' "$YELLOW" "$RESET"
-    else
-        run 'gh extension install github/gh-stack' gh extension install github/gh-stack
+step 'Agent Browser'
+ask_yes_no INSTALL_AGENT_BROWSER 'Install Agent Browser (including headless Chrome)?' y
+if [ "$INSTALL_AGENT_BROWSER" = 'y' ]; then
+    run 'npm install -g agent-browser' \
+        npm install -g --no-audit --no-fund agent-browser
+    add_npm_global_to_path
+    run 'agent-browser install' agent-browser install
+else
+    skipped 'Agent Browser'
+fi
+
+# --- 4. Command Code ------------------------------------------------------
+
+step 'Command Code'
+ask_yes_no INSTALL_COMMAND_CODE 'Install Command Code?' y
+if [ "$INSTALL_COMMAND_CODE" = 'y' ]; then
+    run 'npm install -g command-code@latest' \
+        npm install -g --no-audit --no-fund 'command-code@latest'
+    add_npm_global_to_path
+    if [ "$INSTALL_HERDR" = 'y' ]; then
+        step 'Herdr Command Code mod'
+        install_herdr_mod
     fi
 else
-    printf '\n    %sSkipping gh-stack GitHub CLI extension%s\n' "$YELLOW" "$RESET"
+    skipped 'Command Code'
 fi
 
-# --- Global skills --------------------------------------------------------
+# --- 5. Pi ----------------------------------------------------------------
 
-step 'Installing global agent skills'
-for i in "${!SKILL_NAMES[@]}"; do
-    skill="${SKILL_NAMES[$i]}"
-    if [ "$skill" = 'gh-stack' ] && [ "$USE_STACKED_PRS" != 'y' ]; then
-        printf '    %sSkipping %s skill%s\n' "$YELLOW" "$skill" "$RESET"
-        continue
+step 'Pi'
+ask_yes_no INSTALL_PI 'Install the Pi coding agent?' y
+if [ "$INSTALL_PI" = 'y' ]; then
+    run 'npm install -g @earendil-works/pi-coding-agent' \
+        npm install -g --no-audit --no-fund '@earendil-works/pi-coding-agent'
+    add_npm_global_to_path
+    step "Configuring Pi ($PI_SETTINGS)"
+    configure_pi
+else
+    skipped 'Pi'
+fi
+
+# --- 6. Pi extensions -----------------------------------------------------
+
+step 'Pi extensions'
+if [ "$INSTALL_PI" = 'y' ]; then
+    ask_yes_no INSTALL_PI_EXTENSIONS 'Install the curated set of Pi extensions?' y
+    if [ "$INSTALL_PI_EXTENSIONS" = 'y' ]; then
+        for pkg in "${PI_EXTENSIONS[@]}"; do
+            run "pi install $pkg" pi install "$pkg"
+        done
+        run 'pi list' pi list
+    else
+        skipped 'Pi extensions'
     fi
-    source="${SKILL_SOURCES[$i]}"
-    run "skills add $skill ($source)" \
-        npx --yes skills add "$source" --skill "$skill" -g -a universal --copy -y
-done
+else
+    skipped 'Pi extensions (Pi not installed)'
+fi
+
+# --- 7. Agent skills (single bundle) --------------------------------------
+
+step 'Agent skills'
+ask_yes_no INSTALL_SKILLS 'Install the global agent skills bundle?' y
+if [ "$INSTALL_SKILLS" = 'y' ]; then
+    for i in "${!SKILL_NAMES[@]}"; do
+        skill="${SKILL_NAMES[$i]}"
+        source="${SKILL_SOURCES[$i]}"
+        run "skills add $skill ($source)" \
+            npx --yes skills add "$source" --skill "$skill" -g -a universal --copy -y
+    done
+else
+    skipped 'Agent skills'
+fi
 
 # --- Cleanup --------------------------------------------------------------
 
@@ -337,15 +379,17 @@ run 'npm cache clean --force' npm cache clean --force
 
 # --- Summary --------------------------------------------------------------
 
-if [ "$INSTALL_PI" = 'y' ]; then
+if [ "$INSTALL_PI_EXTENSIONS" = 'y' ]; then
     step 'Installed Pi extensions'
     run 'pi list' pi list
 fi
 
-step 'Installed global skills'
-run 'npx --yes skills list -g' npx --yes skills list -g
+if [ "$INSTALL_SKILLS" = 'y' ]; then
+    step 'Installed global skills'
+    run 'npx --yes skills list -g' npx --yes skills list -g
+fi
 
-printf '\n%sDone. Command Code, Herdr, Herdr status mod, Agent Browser, GitHub CLI, and skills are installed.%s\n' "$GREEN" "$RESET"
+printf '\n%sDone.%s\n' "$GREEN" "$RESET"
 if [ "$INSTALL_PI" = 'y' ]; then
     printf 'Then start the agent with: pi\n'
 else
