@@ -7,8 +7,8 @@
 .DESCRIPTION
     Installs, as individually chosen components: Herdr Desktop, GitHub CLI
     (plus the gh-stack extension), Agent Browser (headless Chrome),
-    Command Code, Pi, the curated Pi extensions, and the global agent
-    skills (installed as a single bundle).
+    Agentmail CLI, Command Code, Pi, the curated Pi extensions, and the
+    global agent skills (installed as a single bundle).
 
     Each component is prompted for in turn; confirming installs it
     immediately before moving on to the next component.
@@ -23,8 +23,8 @@
     Optional installs are prompted for interactively. For non-interactive
     setups, preset any of these (y/yes or n/no):
       $env:INSTALL_HERDR, $env:INSTALL_GH, $env:INSTALL_AGENT_BROWSER,
-      $env:INSTALL_COMMAND_CODE, $env:INSTALL_PI, $env:INSTALL_PI_EXTENSIONS,
-      $env:INSTALL_SKILLS
+      $env:INSTALL_AGENTMAIL, $env:INSTALL_COMMAND_CODE, $env:INSTALL_PI,
+      $env:INSTALL_PI_EXTENSIONS, $env:INSTALL_SKILLS
     Defaults (yes) apply when a variable is unset, including on a piped stdin.
 #>
 
@@ -60,13 +60,14 @@ $PiExtensions = @(
 )
 
 $Skills = @(
-    @{ Source = 'https://github.com/engineeringmadness/dev-setup'; Skill = 'brainstorming' }
-    @{ Source = 'https://github.com/dietrichgebert/ponytail';      Skill = 'ponytail' }
-    @{ Source = 'https://github.com/zlliang/skills';               Skill = 'gh-cli' }
-    @{ Source = 'https://github.com/github/gh-stack';              Skill = 'gh-stack' }
-    @{ Source = 'https://github.com/vercel-labs/agent-browser';    Skill = 'agent-browser' }
-    @{ Source = 'shadcn/ui';                                       Skill = 'shadcn' }
-    @{ Source = 'supabase/agent-skills';                           Skill = 'supabase' }
+    @{ Source = 'https://github.com/engineeringmadness/dev-setup';  Skill = 'brainstorming' }
+    @{ Source = 'https://github.com/dietrichgebert/ponytail';       Skill = 'ponytail' }
+    @{ Source = 'https://github.com/zlliang/skills';                Skill = 'gh-cli' }
+    @{ Source = 'https://github.com/github/gh-stack';               Skill = 'gh-stack' }
+    @{ Source = 'https://github.com/vercel-labs/agent-browser';     Skill = 'agent-browser' }
+    @{ Source = 'shadcn/ui';                                        Skill = 'shadcn' }
+    @{ Source = 'supabase/agent-skills';                            Skill = 'supabase' }
+    @{ Source = 'https://github.com/agentmail-to/agentmail-skills'; Skill = 'agentmail-cli' }
 )
 
 # --- Helpers --------------------------------------------------------------
@@ -227,7 +228,20 @@ else {
     Write-Skipped 'Agent Browser'
 }
 
-# --- 4. Command Code ------------------------------------------------------
+# --- 4. Agentmail ---------------------------------------------------------
+
+Write-Step 'Agentmail'
+$InstallAgentmail = Ask-YesNo -VariableName 'INSTALL_AGENTMAIL' -Prompt 'Install the Agentmail CLI?' -Default 'y'
+if ($InstallAgentmail -eq 'y') {
+    Invoke-CLI 'powershell -ExecutionPolicy Bypass -c "irm https://github.com/agentmail-to/agentmail-cli/releases/latest/download/agentmail-cli-installer.ps1 | iex"' {
+        powershell -ExecutionPolicy Bypass -c "irm https://github.com/agentmail-to/agentmail-cli/releases/latest/download/agentmail-cli-installer.ps1 | iex"
+    }
+}
+else {
+    Write-Skipped 'Agentmail'
+}
+
+# --- 5. Command Code ------------------------------------------------------
 
 Write-Step 'Command Code'
 $InstallCommandCode = Ask-YesNo -VariableName 'INSTALL_COMMAND_CODE' -Prompt 'Install Command Code?' -Default 'y'
@@ -256,7 +270,7 @@ else {
     Write-Skipped 'Command Code'
 }
 
-# --- 5. Pi ----------------------------------------------------------------
+# --- 6. Pi ----------------------------------------------------------------
 
 Write-Step 'Pi'
 $InstallPi = Ask-YesNo -VariableName 'INSTALL_PI' -Prompt 'Install the Pi coding agent?' -Default 'y'
@@ -284,7 +298,7 @@ else {
     Write-Skipped 'Pi'
 }
 
-# --- 6. Pi extensions -----------------------------------------------------
+# --- 7. Pi extensions -----------------------------------------------------
 
 Write-Step 'Pi extensions'
 $InstallPiExtensions = $null
@@ -304,7 +318,7 @@ else {
     Write-Skipped 'Pi extensions (Pi not installed)'
 }
 
-# --- 7. Agent skills (single bundle) --------------------------------------
+# --- 8. Agent skills (single bundle) --------------------------------------
 
 Write-Step 'Agent skills'
 $InstallSkills = Ask-YesNo -VariableName 'INSTALL_SKILLS' -Prompt 'Install the global agent skills bundle?' -Default 'y'

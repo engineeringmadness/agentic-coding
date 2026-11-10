@@ -35,15 +35,17 @@ Installed globally for all agents (`-a universal --copy`):
 5. `agent-browser` - [vercel-labs/agent-browser](https://github.com/vercel-labs/agent-browser)
 6. `shadcn` - [shadcn-ui/ui](https://github.com/shadcn-ui/ui)
 7. `supabase` - [supabase/agent-skills](https://github.com/supabase/agent-skills)
+8. `agentmail-cli` - [agentmail-to/agentmail-skills](https://github.com/agentmail-to/agentmail-skills)
 
 ### Tooling
 
 - **GitHub CLI** - Repo operations, PRs, Issue management. Stacked PR support reduces cognitive load on human code reviewer.
 - **Agent-browser** - Test UI changes E2E using a headless chrome browser. Much more token efficient compared to Playwright / Selenium.
+- **Agentmail** - Mailbox for agents accessible via a CLI, giving each agent its own inbox and address.
 
 ### Windows (PowerShell 7)
 
-Native install of Pi, Command Code, Herdr, the extensions, Agent Browser, the gh-stack extension, and global skills.
+Native install of Pi, Command Code, Herdr, the extensions, Agent Browser, Agentmail, the gh-stack extension, and global skills.
 Assumes that NodeJS 24 & Git is pre-installed on the system
 ```powershell
 pwsh -NoProfile -Command "irm https://raw.githubusercontent.com/engineeringmadness/agentic-coding/master/coding-agent/setup-windows.ps1 | iex"
@@ -51,7 +53,7 @@ pwsh -NoProfile -Command "irm https://raw.githubusercontent.com/engineeringmadne
 
 ### Linux (Bash)
 
-Native install of Pi, Command Code, Herdr, the extensions, Agent Browser, the gh-stack extension, and global skills.
+Native install of Pi, Command Code, Herdr, the extensions, Agent Browser, Agentmail, the gh-stack extension, and global skills.
 Assumes that NodeJS 24 & Git is pre-installed on the system
 ```bash
 curl -fsSL https://raw.githubusercontent.com/engineeringmadness/agentic-coding/master/coding-agent/setup-linux.sh | bash

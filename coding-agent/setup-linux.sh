@@ -5,8 +5,8 @@
 #
 # Installs, as individually chosen components: Herdr Desktop, GitHub CLI
 # (plus the gh-stack extension), Agent Browser (headless Chrome),
-# Command Code, Pi, the curated Pi extensions, and the global agent
-# skills (installed as a single bundle).
+# Agentmail CLI, Command Code, Pi, the curated Pi extensions, and the
+# global agent skills (installed as a single bundle).
 #
 # Each component is prompted for in turn; confirming installs it
 # immediately before moving on to the next component.
@@ -20,7 +20,7 @@
 # Optional installs are prompted for interactively. For non-interactive
 # setups, preset any of these (y/yes or n/no):
 #   INSTALL_HERDR=1|0  INSTALL_GH=1|0  INSTALL_AGENT_BROWSER=1|0
-#   INSTALL_COMMAND_CODE=1|0  INSTALL_PI=1|0
+#   INSTALL_AGENTMAIL=1|0  INSTALL_COMMAND_CODE=1|0  INSTALL_PI=1|0
 #   INSTALL_PI_EXTENSIONS=1|0  INSTALL_SKILLS=1|0
 # Defaults (yes) apply when a variable is unset, including on a piped stdin.
 #
@@ -61,6 +61,7 @@ SKILL_SOURCES=(
     'https://github.com/vercel-labs/agent-browser'
     'shadcn/ui'
     'supabase/agent-skills'
+    'https://github.com/agentmail-to/agentmail-skills'
 )
 
 SKILL_NAMES=(
@@ -71,6 +72,7 @@ SKILL_NAMES=(
     'agent-browser'
     'shadcn'
     'supabase'
+    'agentmail-cli'
 )
 
 # --- Helpers --------------------------------------------------------------
@@ -269,6 +271,7 @@ printf '    %sOK: git, node, npm%s\n' "$GREEN" "$RESET"
 INSTALL_HERDR=''
 INSTALL_GH=''
 INSTALL_AGENT_BROWSER=''
+INSTALL_AGENTMAIL=''
 INSTALL_COMMAND_CODE=''
 INSTALL_PI=''
 INSTALL_PI_EXTENSIONS=''
@@ -310,7 +313,19 @@ else
     skipped 'Agent Browser'
 fi
 
-# --- 4. Command Code ------------------------------------------------------
+# --- 4. Agentmail ---------------------------------------------------------
+
+step 'Agentmail'
+ask_yes_no INSTALL_AGENTMAIL 'Install the Agentmail CLI?' y
+if [ "$INSTALL_AGENTMAIL" = 'y' ]; then
+    run 'npm install -g agentmail-cli' \
+        npm install -g --no-audit --no-fund agentmail-cli
+    add_npm_global_to_path
+else
+    skipped 'Agentmail'
+fi
+
+# --- 5. Command Code ------------------------------------------------------
 
 step 'Command Code'
 ask_yes_no INSTALL_COMMAND_CODE 'Install Command Code?' y
@@ -326,7 +341,7 @@ else
     skipped 'Command Code'
 fi
 
-# --- 5. Pi ----------------------------------------------------------------
+# --- 6. Pi ----------------------------------------------------------------
 
 step 'Pi'
 ask_yes_no INSTALL_PI 'Install the Pi coding agent?' y
@@ -340,7 +355,7 @@ else
     skipped 'Pi'
 fi
 
-# --- 6. Pi extensions -----------------------------------------------------
+# --- 7. Pi extensions -----------------------------------------------------
 
 step 'Pi extensions'
 if [ "$INSTALL_PI" = 'y' ]; then
@@ -357,7 +372,7 @@ else
     skipped 'Pi extensions (Pi not installed)'
 fi
 
-# --- 7. Agent skills (single bundle) --------------------------------------
+# --- 8. Agent skills (single bundle) --------------------------------------
 
 step 'Agent skills'
 ask_yes_no INSTALL_SKILLS 'Install the global agent skills bundle?' y
