@@ -14,17 +14,13 @@ A great extensible feature packed harness that comes with its own generous codin
 
 A minimalist harness that yields control to its user, highly extensible and fast.
 
-### Primary Model - DeepSeek Flash V4.1 High
+### Tooling
 
-Once you get used to a 100-150 TPS rate in your coding agent you can never go back to Claude code (^_^!).
-Deepseek is extremely cheap especially for cached inputs and the V4.1 Flash series has a very high token throuput rate.
+- **GitHub CLI** - Repo operations, PRs, Issue management. Stacked PR support reduces cognitive load on human code reviewer.
+- **Agent-browser** - Test UI changes E2E using a headless chrome browser. Much more token efficient compared to Playwright / Selenium.
+- **Agentmail** - Mailbox for agents accessible via a CLI, giving each agent its own inbox and address.
 
-### Secondary Model - Changing (At the moment its Minimax M3.1 Flash High)
-
-A model that "Thinks" a bit more, focuses on type signatures a lot more compared to DeepSeek. 
-I use it primarily for refactoring work, code cleanup and alternative approach analysis.
-
-### Skills
+### Agent Skills
 
 Installed globally for all agents (`-a universal --copy`):
 
@@ -36,12 +32,6 @@ Installed globally for all agents (`-a universal --copy`):
 6. `shadcn` - [shadcn-ui/ui](https://github.com/shadcn-ui/ui)
 7. `supabase` - [supabase/agent-skills](https://github.com/supabase/agent-skills)
 8. `agentmail-cli` - [agentmail-to/agentmail-skills](https://github.com/agentmail-to/agentmail-skills)
-
-### Tooling
-
-- **GitHub CLI** - Repo operations, PRs, Issue management. Stacked PR support reduces cognitive load on human code reviewer.
-- **Agent-browser** - Test UI changes E2E using a headless chrome browser. Much more token efficient compared to Playwright / Selenium.
-- **Agentmail** - Mailbox for agents accessible via a CLI, giving each agent its own inbox and address.
 
 ### Windows (PowerShell 7)
 
